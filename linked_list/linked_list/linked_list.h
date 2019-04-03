@@ -6,10 +6,6 @@ struct __list_node {
   __list_node<T>* prev;
   __list_node<T>* next;
   T data;
-
-  __list_node(){};
-  __list_node(T e, __list_node<T>* p = nullptr, __list_node<T>* n = nullptr)
-      : data(e), prev(p), next(n) {}
 };
 
 template <typename T>
@@ -20,7 +16,8 @@ struct __list_iterator {
 
   link_type node;
 
-  __list_iterator() {}
+  __list_iterator() : node(nullptr) {}
+
   __list_iterator(link_type x) : node(x) {}
   __list_iterator(const iterator& x) : node(x.node) {}
 
@@ -52,7 +49,7 @@ struct __list_iterator {
 
   T& operator*() const { return node->data; }
 
-  T* operator->() const { return node; }
+  T* operator->() const { return *node; }
 };
 
 template <typename T>
@@ -98,20 +95,23 @@ class list {
     pos.node->prev->next = tmp;
     pos.node->prev = tmp;
 
-	tmp->data = e;
+    tmp->data = e;
     ++length;
     return tmp;
   }
 
   iterator erase(iterator pos) {
-    T e = pos.node->data;
-    pos.node->prev->next = pos.node->next;
-    pos.node->next->prev = pos.node->prev;
+    link_type next_node = link_type(pos.node->next);
+    link_type prev_node = link_type(pos.node->prev);
+    next_node->prev = prev_node;
+    prev_node->next = next_node;
     delete pos.node;
     --length;
+
+    return next_node;
   }
 
-  void display() {
+  void display() const {
     iterator first = begin();
     iterator last = end();
     while (first != last) {
